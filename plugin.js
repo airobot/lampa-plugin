@@ -1,20 +1,80 @@
 (function() {
-    // Инициализация плагина
+    // Проверяем, что Lampa доступна
+    if (typeof Lampa === 'undefined') {
+        console.error('Lampa не найдена. Плагин не может быть загружен.');
+        return;
+    }
+
+    // Создаем объект плагина
     const MyPlayerPlugin = {
+        // Инициализация плагина
         init: function() {
-            // Логика инициализации
-            console.log("Плагин видеоплеера загружен!");
+            console.log('Плагин видеоплеера инициализирован!');
+
+            // Подписываемся на события Lampa
+            this._subscribeToEvents();
         },
 
-        play: function(url) {
-            // Логика воспроизведения видео
-            console.log("Воспроизведение видео: " + url);
+        // Метод для подписки на события Lampa
+        _subscribeToEvents: function() {
+            // Пример: подписываемся на событие выбора видео
+            Lampa.on('videoSelected', (url) => {
+                console.log('Выбрано видео:', url);
+                this._playVideo(url);
+            });
+
+            // Пример: подписываемся на событие паузы
+            Lampa.on('videoPaused', () => {
+                console.log('Видео на паузе');
+                this._pauseVideo();
+            });
+        },
+
+        // Метод для воспроизведения видео
+        _playVideo: function(url) {
+            console.log('Воспроизведение видео:', url);
+
+            // Создаем видеоплеер (например, используя Video.js)
+            const videoContainer = document.createElement('div');
+            videoContainer.id = 'my-video-player';
+            document.body.appendChild(videoContainer);
+
+            const player = videojs('my-video-player', {
+                controls: true,
+                autoplay: true,
+                sources: [{
+                    src: url,
+                    type: 'video/mp4'
+                }]
+            });
+
+            // Сохраняем плеер для дальнейшего управления
+            this._player = player;
+        },
+
+        // Метод для паузы видео
+        _pauseVideo: function() {
+            if (this._player) {
+                this._player.pause();
+                console.log('Видео приостановлено');
+            }
+        },
+
+        // Метод для остановки видео
+        _stopVideo: function() {
+            if (this._player) {
+                this._player.dispose(); // Уничтожаем плеер
+                this._player = null;
+                console.log('Видео остановлено');
+            }
         }
     };
 
-    // Регистрация плагина в Lampa
-    if (window.Lampa && window.Lampa.registerPlugin) {
-        window.Lampa.registerPlugin('myPlayerPlugin', MyPlayerPlugin);
+    // Регистрируем плагин в Lampa
+    if (Lampa.registerPlugin) {
+        Lampa.registerPlugin('myPlayerPlugin', MyPlayerPlugin);
+    } else {
+        console.error('Метод registerPlugin не найден в Lampa.');
     }
 })();
 
